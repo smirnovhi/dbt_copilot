@@ -40,6 +40,8 @@ This project demonstrates how to normalize a JSON sample representing a school, 
 7. **ERD Documentation**
    - See `sample.dbml` and `sample.mermaid` for DBML and Mermaid ERD diagrams and further documentation.
 
+![Diagram](diagram.png)
+
 8. **Show students from schoool** 
 
 ```
