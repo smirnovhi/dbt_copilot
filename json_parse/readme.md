@@ -1,4 +1,6 @@
-# Exercise: Normalizing School JSON Data and Documenting with dbt & ERD
+# Exercise: Normalizing School JSON Data and Documenting with dbt & ERD 
+# Snowflake
+# VS Code
 # GitHub Copilot, model GPT-4.1
 
 This project demonstrates how to normalize a JSON sample representing a school, its classes, students, and their grades into a relational schema using dbt, and how to document the resulting structure with an Entity Relationship Diagram (ERD).
