@@ -3,7 +3,7 @@ erDiagram
         INTEGER SCHOOL_ID PK
         STRING SCHOOL_NAME
     }
-    CLASS {
+    "CLASS" {
         INTEGER CLASS_ID PK
         STRING CLASS_NAME
         INTEGER SCHOOL_ID FK
@@ -24,8 +24,8 @@ erDiagram
         INTEGER CHEMISTRY
     }
 
-    SCHOOL ||--o{ CLASS : has
+    SCHOOL ||--o{ "CLASS" : has
     SCHOOL ||--o{ STUDENT_CLASS_SCHOOL : has
-    CLASS ||--o{ STUDENT_CLASS_SCHOOL : has
+    "CLASS" ||--o{ STUDENT_CLASS_SCHOOL : has
     STUDENT ||--o{ STUDENT_CLASS_SCHOOL : has
     STUDENT ||--|| GRADE : has
