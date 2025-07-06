@@ -1,0 +1,143 @@
+CREATE OR REPLACE TABLE DEV.PUBLIC.JSON_SAMPLE (
+    DATA VARIANT
+);  
+
+INSERT INTO DEV.PUBLIC.JSON_SAMPLE (DATA)   
+SELECT PARSE_JSON('{"school_name": "Dunder Miflin",
+    "class": "Year 1",
+    "students": [
+    {
+        "id": "A1",
+        "name": "Jim",
+        "grade": {
+            "math": 60,
+            "physics": 66,
+            "chemistry": 61
+        }
+  
+    },
+    {
+        "id": "A2",
+        "name": "Dwight",
+        "grade": {
+            "math": 89,
+            "physics": 76,
+            "chemistry": 51
+        }
+        
+    },
+    {
+        "id": "A3",
+        "name": "Kevin",
+        "grade": {
+            "math": 79,
+            "physics": 90,
+            "chemistry": 78
+        }
+    }]
+}');
+
+-- School table
+
+
+-- School table
+CREATE OR REPLACE TABLE DEV.PUBLIC.SCHOOL (
+    SCHOOL_ID INTEGER AUTOINCREMENT,
+    SCHOOL_NAME STRING,
+    PRIMARY KEY (SCHOOL_ID)
+);
+
+-- Class table
+CREATE OR REPLACE TABLE DEV.PUBLIC.CLASS (
+    CLASS_ID INTEGER AUTOINCREMENT,
+    CLASS_NAME STRING,
+    SCHOOL_ID INTEGER,
+    PRIMARY KEY (CLASS_ID),
+    FOREIGN KEY (SCHOOL_ID) REFERENCES DEV.PUBLIC.SCHOOL(SCHOOL_ID)
+);
+
+-- Student table
+
+-- Student table (no class or school reference)
+CREATE OR REPLACE TABLE DEV.PUBLIC.STUDENT (
+    STUDENT_ID STRING,
+    NAME STRING,
+    PRIMARY KEY (STUDENT_ID)
+);
+
+-- Bridge table between STUDENT, CLASS, and SCHOOL
+CREATE OR REPLACE TABLE DEV.PUBLIC.STUDENT_CLASS_SCHOOL (
+    STUDENT_ID STRING,
+    CLASS_ID INTEGER,
+    SCHOOL_ID INTEGER,
+    PRIMARY KEY (STUDENT_ID, CLASS_ID, SCHOOL_ID),
+    FOREIGN KEY (STUDENT_ID) REFERENCES DEV.PUBLIC.STUDENT(STUDENT_ID),
+    FOREIGN KEY (CLASS_ID) REFERENCES DEV.PUBLIC.CLASS(CLASS_ID),
+    FOREIGN KEY (SCHOOL_ID) REFERENCES DEV.PUBLIC.SCHOOL(SCHOOL_ID)
+);
+
+-- Grade table
+CREATE OR REPLACE TABLE DEV.PUBLIC.GRADE (
+    STUDENT_ID STRING,
+    MATH INTEGER,
+    PHYSICS INTEGER,
+    CHEMISTRY INTEGER,
+    PRIMARY KEY (STUDENT_ID),
+    FOREIGN KEY (STUDENT_ID) REFERENCES DEV.PUBLIC.STUDENT(STUDENT_ID)
+);
+
+-- Insert into SCHOOL
+INSERT INTO DEV.PUBLIC.SCHOOL (SCHOOL_NAME)
+SELECT DISTINCT DATA:school_name::STRING
+FROM DEV.PUBLIC.JSON_SAMPLE;
+
+-- Insert into CLASS
+INSERT INTO DEV.PUBLIC.CLASS (CLASS_NAME, SCHOOL_ID)
+SELECT DISTINCT
+    j.DATA:class::STRING,
+    s.SCHOOL_ID
+FROM DEV.PUBLIC.JSON_SAMPLE j
+JOIN DEV.PUBLIC.SCHOOL s
+  ON s.SCHOOL_NAME = j.DATA:school_name::STRING;
+
+-- Insert into STUDENT
+INSERT INTO DEV.PUBLIC.STUDENT (STUDENT_ID, NAME)
+SELECT DISTINCT
+    student.value:id::STRING,
+    student.value:name::STRING
+FROM DEV.PUBLIC.JSON_SAMPLE j,
+     LATERAL FLATTEN(input => j.DATA:students) student;
+
+-- Insert into STUDENT_CLASS_SCHOOL bridge table
+INSERT INTO DEV.PUBLIC.STUDENT_CLASS_SCHOOL (STUDENT_ID, CLASS_ID, SCHOOL_ID)
+(WITH SRC AS (
+SELECT
+    s.value:id::STRING STUDENT_ID,
+    j.DATA:class::STRING CLASS_NAME,
+    j.DATA:school_name::STRING SCHOOL_NAME
+FROM DEV.PUBLIC.JSON_SAMPLE j,
+LATERAL FLATTEN(input => j.DATA:students) s)
+
+Select 
+SRC.STUDENT_ID,
+s.SCHOOL_ID,
+c.CLASS_ID
+FROM SRC 
+JOIN DEV.PUBLIC.SCHOOL s
+  ON s.SCHOOL_NAME = SRC.SCHOOL_NAME::STRING
+JOIN DEV.PUBLIC.CLASS c
+  ON c.CLASS_NAME = SRC.CLASS_NAME::STRING AND c.SCHOOL_ID = s.SCHOOL_ID
+JOIN DEV.PUBLIC.STUDENT st
+  ON st.STUDENT_ID = SRC.STUDENT_ID);
+
+-- Insert into GRADE
+INSERT INTO DEV.PUBLIC.GRADE (STUDENT_ID, MATH, PHYSICS, CHEMISTRY)
+SELECT
+    student.value:id::STRING,
+    student.value:grade.math::INTEGER,
+    student.value:grade.physics::INTEGER,
+    student.value:grade.chemistry::INTEGER
+FROM DEV.PUBLIC.JSON_SAMPLE j,
+     LATERAL FLATTEN(input => j.DATA:students) student
+JOIN DEV.PUBLIC.STUDENT st
+  ON st.STUDENT_ID = student.value:id::STRING;

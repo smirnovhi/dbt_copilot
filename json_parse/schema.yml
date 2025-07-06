@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: school
+    database: DEV
+    schema: PUBLIC
+    tables:
+      - name: json_sample

@@ -1,0 +1,31 @@
+Table school {
+  school_id integer [pk, increment]
+  school_name string
+}
+
+Table class {
+  class_id integer [pk, increment]
+  class_name string
+  school_id integer [ref: > school.school_id]
+}
+
+Table student {
+  student_id string [pk]
+  name string
+}
+
+Table student_class_school {
+  student_id string [ref: > student.student_id]
+  class_id integer [ref: > class.class_id]
+  school_id integer [ref: > school.school_id]
+  indexes {
+    (student_id, class_id, school_id) [unique]
+  }
+}
+
+Table grade {
+  student_id string [pk, ref: > student.student_id]
+  math integer
+  physics integer
+  chemistry integer
+}

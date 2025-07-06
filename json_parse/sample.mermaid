@@ -1,0 +1,31 @@
+erDiagram
+    SCHOOL {
+        INTEGER SCHOOL_ID PK
+        STRING SCHOOL_NAME
+    }
+    CLASS {
+        INTEGER CLASS_ID PK
+        STRING CLASS_NAME
+        INTEGER SCHOOL_ID FK
+    }
+    STUDENT {
+        STRING STUDENT_ID PK
+        STRING NAME
+    }
+    STUDENT_CLASS_SCHOOL {
+        STRING STUDENT_ID PK, FK
+        INTEGER CLASS_ID PK, FK
+        INTEGER SCHOOL_ID PK, FK
+    }
+    GRADE {
+        STRING STUDENT_ID PK, FK
+        INTEGER MATH
+        INTEGER PHYSICS
+        INTEGER CHEMISTRY
+    }
+
+    SCHOOL ||--o{ CLASS : has
+    SCHOOL ||--o{ STUDENT_CLASS_SCHOOL : has
+    CLASS ||--o{ STUDENT_CLASS_SCHOOL : has
+    STUDENT ||--o{ STUDENT_CLASS_SCHOOL : has
+    STUDENT ||--|| GRADE : has
