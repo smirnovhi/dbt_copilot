@@ -95,7 +95,7 @@ JOIN DEV.PUBLIC.SCHOOL sch
             "chemistry": 78
         }
     }]
-}'
+}
 ```
 
 - Time of exersize with documentation - 1hr
